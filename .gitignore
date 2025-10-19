@@ -1,0 +1,5 @@
+upload_dir
+models
+*.txt
+.idea
+.env
