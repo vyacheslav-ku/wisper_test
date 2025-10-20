@@ -13,7 +13,9 @@ batch_size = 16 # reduce if low on GPU mem
 compute_type = os.getenv("compute_type", "float16") #"int8" # "float16" # change to "int8" if low on GPU mem (may reduce accuracy)
 
 # 1. Transcribe with original whisper (batched)
-model = whisperx.load_model(os.getenv("whisperx_model_name","large-v2"), device, compute_type=compute_type)
+model = whisperx.load_model(os.getenv("whisperx_model_name","large-v2"), device,
+                            compute_type=compute_type,
+                            download_root=os.getenv("whisperx_download_root","./models"))
 
 # save model to local path (optional)
 # model_dir = "/path/"
