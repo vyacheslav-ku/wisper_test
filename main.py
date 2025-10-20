@@ -54,5 +54,5 @@ print(diarize_segments)
 print("result")
 print(result["segments"]) # segments are now assigned speaker IDs
 result['processed_time'] = time.time() - start_time
-with open(os.path.join(os.getenv("upload_dir","./"), f"{audio_file}_diarized.json"), "w") as f:
+with open(os.path.join(os.getenv("base_directory","./"), f"{audio_file}_diarized.json"), "w") as f:
     json.dump(result, f)
