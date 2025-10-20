@@ -3,8 +3,8 @@ import os
 import json
 import whisperx
 import torch
-torch.backends.cuda.matmul.allow_tf32 = True
-torch.backends.cudnn.allow_tf32 = True
+torch.backends.cuda.matmul.allow_tf32 = False
+torch.backends.cudnn.allow_tf32 = False
 import gc
 from whisperx.diarize import DiarizationPipeline
 import dotenv
