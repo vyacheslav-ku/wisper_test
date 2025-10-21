@@ -2,9 +2,14 @@ import time
 import os
 import json
 import whisperx
+# import torch
+# torch.backends.cuda.matmul.allow_tf32 = False
+# torch.backends.cudnn.allow_tf32 = False
 import torch
-torch.backends.cuda.matmul.allow_tf32 = False
-torch.backends.cudnn.allow_tf32 = False
+print(torch.version.cuda)
+print(torch.backends.cudnn.version())
+
+
 import gc
 from whisperx.diarize import DiarizationPipeline
 import dotenv
