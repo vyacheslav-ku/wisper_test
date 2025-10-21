@@ -15,7 +15,7 @@ from whisperx.diarize import DiarizationPipeline
 import dotenv
 dotenv.load_dotenv()
 start_time = time.time()
-print(os.environ)
+#print(os.environ)
 print("=========")
 device = os.getenv("device", "cuda") #"cpu" # "cuda"
 audio_file = os.getenv("audio_file", "audio.wav")
