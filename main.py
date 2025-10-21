@@ -6,8 +6,8 @@ import whisperx
 # torch.backends.cuda.matmul.allow_tf32 = False
 # torch.backends.cudnn.allow_tf32 = False
 import torch
-print(torch.version.cuda)
-print(torch.backends.cudnn.version())
+print(f"torch.version.cuda={torch.version.cuda}")
+print(f"torch.backends.cudnn.version={torch.backends.cudnn.version()}")
 
 
 import gc
