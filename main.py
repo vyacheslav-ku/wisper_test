@@ -13,7 +13,8 @@ print(f"torch.backends.cudnn.version={torch.backends.cudnn.version()}")
 import gc
 from whisperx.diarize import DiarizationPipeline
 import dotenv
-dotenv.load_dotenv()
+dotenv.load_dotenv("~/.env")
+dotenv.load_dotenv(".env")
 start_time = time.time()
 #print(os.environ)
 print("=========")
