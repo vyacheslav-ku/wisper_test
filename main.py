@@ -51,6 +51,7 @@ print(f" transcribastion Took time: {time.time() - transcribasiotn_start_time} s
 import gc; import torch; gc.collect(); torch.cuda.empty_cache(); del model_a
 #
 # # 3. Assign speaker labels
+assign_word_speakers_start = time.time()
 diarize_model = DiarizationPipeline(os.getenv("diarization_model_name",'pyannote/speaker-diarization-3.1'),
                                     use_auth_token=os.getenv("use_auth_token"),
                                     device=device)
@@ -65,5 +66,8 @@ print(diarize_segments)
 print("result")
 print(result["segments"]) # segments are now assigned speaker IDs
 result['processed_time'] = time.time() - start_time
+print(f"transcribasiotn_start_time time: {time.time() - transcribasiotn_start_time} seconds")
+print(f"Total time: {time.time() - start_time} seconds")
+print(f"assign_word_speakers_start time: {time.time() - assign_word_speakers_start} seconds")
 with open(os.path.join(os.getenv("base_directory","./"), f"{audio_file}_diarized.json"), "w") as f:
     json.dump(result, f)
