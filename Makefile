@@ -44,7 +44,7 @@ build:
 	docker run --rm -ti -e TESTRUN=1 --env-file=./.env \
 				-v ./models:/opt/wisper/models \
 				-v ./uploads:/opt/wisper/uploads \
-				-p 8000:8000
+				-p 8000:8000 \
 				--name $(CONTAINER_NAME) $(IMAGE_NAME):latest
 	@echo "Created a new docker image: $(IMAGE_NAME):$(NEW_VERSION)"
 	make tag NEW_VERSION=$(NEW_VERSION)

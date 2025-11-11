@@ -40,7 +40,7 @@ model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device
                             compute_type=compute_type,
                             download_root=os.getenv("whisperx_download_root", "./models"))
 app = FastAPI()
-
+print("READY!!")
 
 
 
