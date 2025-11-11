@@ -16,7 +16,7 @@ ENV APP_HOME=${APP_HOME} \
 
 # Системные зависимости только необходимые для Poetry и Python сборки
 RUN apt-get update && apt-get install -y --no-install-recommends \
-        curl build-essential \
+        curl build-essential  ffmpeg \
     && rm -rf /var/lib/apt/lists/* \
     && useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
     && mkdir -p ${POETRY_HOME}  \

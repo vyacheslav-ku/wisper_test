@@ -2,7 +2,7 @@ IMAGE_NAME ?= wisper
 TAG ?= latest
 CONTAINER_NAME ?= $(IMAGE_NAME)_container
 CONTAINER_NAME_BASE ?= $(IMAGE_NAME):base
-PORT ?= 7000
+PORT ?= 8000
 DOCKERFILE ?= Dockerfile
 DOCKERFILE_BASE ?= Dockerfile_base
 APP_DIR ?= .
@@ -50,6 +50,15 @@ build:
 	@echo "Created a new docker image: $(IMAGE_NAME):$(NEW_VERSION)"
 	make tag NEW_VERSION=$(NEW_VERSION)
 
+run:
+	@echo "🚀 Run application $(CONTAINER_NAME) on port $(PORT) "
+	docker run --rm -ti \
+		--name $(CONTAINER_NAME) \
+		-p $(PORT):8000 \
+		--env-file=$(ENV_FILE) \
+		 -v ./models:/opt/wisper/models  -v ./uploads:/opt/wisper/uploads \
+		$(IMAGE_NAME):$(TAG)
+
 tag:
 #	@$(call bump_version)
 	@git add .
@@ -65,14 +74,6 @@ clean:
 	@docker rmi $(IMAGE_NAME):$(VERSION) 2>/dev/null || true
 	@echo "Remove image $(IMAGE_NAME):$(VERSION)"
 
-run:
-	@echo "🚀 Run application $(CONTAINER_NAME) on port $(PORT) "
-	docker run --rm -ti \
-		--name $(CONTAINER_NAME) \
-		-p $(PORT):8000 \
-		--env-file=$(ENV_FILE) \
-		 -v ./models:/opt/wisper/models  -v ./uploads:/opt/wisper/uploads \
-		$(IMAGE_NAME):$(TAG)
 
 logs:
 	docker logs -f $(CONTAINER_NAME)

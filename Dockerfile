@@ -37,7 +37,8 @@ ENV APP_HOME=${APP_HOME} \
 
 # Копируем виртуальное окружение и зависимости
 COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} ${APP_HOME} ${APP_HOME}
-
+COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} /usr/bin/ffmpeg /usr/bin/ffmpeg
+COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} /usr/bin/ffmpeg /usr/bin/ffmpeg
 # Копируем только исходники приложения (не ломая кэш зависимостей)
 #COPY --chown=${APP_USER}:${APP_USER} ${PROJECT_NAME} ${APP_HOME}/${PROJECT_NAME}
 COPY --chown=${APP_USER}:${APP_USER} api_service.py ${APP_HOME}/
