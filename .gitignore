@@ -4,3 +4,4 @@ models
 .idea
 .env
 *.json
+/uploads/

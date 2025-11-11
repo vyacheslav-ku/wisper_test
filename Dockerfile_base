@@ -1,0 +1,37 @@
+# -------- Stage 1: Build dependencies with Poetry --------
+FROM python:3.10.13-slim-bullseye AS base
+
+ARG APP_USER=wisper
+ARG APP_UID=4285
+ARG APP_HOME=/opt/${APP_USER}
+ARG POETRY_VERSION=2.2.1
+ARG APP_VERSION=0.0.0
+ARG maintainer="Vyacheslav <you@example.com>"
+ARG description="API for wisper"
+
+ENV APP_HOME=${APP_HOME} \
+    POETRY_HOME=/opt/poetry \
+    POETRY_VIRTUALENVS_IN_PROJECT=true \
+    PATH="/opt/poetry/bin:${APP_HOME}/.venv/bin:$PATH"
+
+# Системные зависимости только необходимые для Poetry и Python сборки
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        curl build-essential \
+    && rm -rf /var/lib/apt/lists/* \
+    && useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
+    && mkdir -p ${POETRY_HOME}  \
+    && chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
+
+USER ${APP_USER}
+WORKDIR ${APP_HOME}
+
+FROM base AS deps
+
+# Копируем только файлы зависимостей (для кеша)
+COPY --chown=${APP_USER}:${APP_USER} install_poetry.py pyproject.toml poetry.lock ./
+
+# Устанавливаем Poetry и зависимости
+RUN python3 install_poetry.py --version ${POETRY_VERSION} && \
+    poetry config virtualenvs.in-project true && \
+    poetry install --only main --no-root --no-interaction --no-ansi && \
+    rm -fr install_poetry.py pyproject.toml poetry.lock
