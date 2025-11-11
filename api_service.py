@@ -32,7 +32,7 @@ compute_type = os.getenv("compute_type",
                          "float16")  # "int8" # "float16" # change to "int8" if low on GPU mem (may reduce accuracy)
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-if os.getenv("TESTRUN", "2") =="1":
+if str(os.getenv("TESTRUN", "2")) =="1":
     print(os.environ)
     sys.exit(0)
 # 1. Transcribe with original whisper (batched)
