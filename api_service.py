@@ -24,8 +24,7 @@ import dotenv
 dotenv.load_dotenv("~/.env")
 dotenv.load_dotenv(".env")
 start_time = time.time()
-print(os.environ)
-print("=========")
+
 device = os.getenv("device", "cuda")  # "cpu" # "cuda"
 batch_size = 16  # reduce if low on GPU mem
 compute_type = os.getenv("compute_type",
@@ -34,6 +33,7 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 if str(os.getenv("TESTRUN", "2")) =="1":
     print(os.environ)
+    print("TEST RUN DONE.")
     sys.exit(0)
 # 1. Transcribe with original whisper (batched)
 model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device,
