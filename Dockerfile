@@ -55,4 +55,4 @@ LABEL maintainer=${maintainer} \
 
 
 # Runing gen-cloud-audio-uploading script
-CMD ["python3", "api_service.py" ]
+CMD ["uvicorn" ,"api_service:app" ,"--reload", "--host", "0.0.0.0","--port", "8000" ]

@@ -39,7 +39,13 @@ build:
 	@echo "🔨 Building app docker image $(IMAGE_NAME):$(NEW_VERSION)"
 	docker build -t $(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
 	docker tag $(IMAGE_NAME):$(NEW_VERSION) $(IMAGE_NAME):latest
-	docker run -e TESTRUN=1 --env-file=./.env -v ./models:/opt/wisper/models  -v ./uploads:/opt/wisper/uploads $(IMAGE_NAME):latest
+	docker kill $(CONTAINER_NAME) && docker rm $(CONTAINER_NAME) || echo "Container $(CONTAINER_NAME) is not running"
+
+	docker run --rm -ti -e TESTRUN=1 --env-file=./.env \
+				-v ./models:/opt/wisper/models \
+				-v ./uploads:/opt/wisper/uploads \
+				-p 8000:8000
+				--name $(CONTAINER_NAME) $(IMAGE_NAME):latest
 	@echo "Created a new docker image: $(IMAGE_NAME):$(NEW_VERSION)"
 	make tag NEW_VERSION=$(NEW_VERSION)
 
@@ -59,11 +65,12 @@ clean:
 	@echo "Remove image $(IMAGE_NAME):$(VERSION)"
 
 run:
-	@echo "🚀 Run application $(CONTAINER_NAME)"
-	docker run -d \
+	@echo "🚀 Run application $(CONTAINER_NAME) on port $(PORT) "
+	docker run --rm -ti \
 		--name $(CONTAINER_NAME) \
-		-p $(PORT):80 \
-		--env-file $(ENV_FILE) \
+		-p $(PORT):8000 \
+		--env-file=$(ENV_FILE) \
+		 -v ./models:/opt/wisper/models  -v ./uploads:/opt/wisper/uploads \
 		$(IMAGE_NAME):$(TAG)
 
 logs:
