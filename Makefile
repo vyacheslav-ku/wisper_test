@@ -44,8 +44,9 @@ build:
 	docker run --rm -ti -e TESTRUN=1 --env-file=./.env \
 				-v ./models:/opt/wisper/models \
 				-v ./uploads:/opt/wisper/uploads \
+				--entrypoint=python3 \
 				-p 8000:8000 \
-				--name $(CONTAINER_NAME) $(IMAGE_NAME):latest
+				--name $(CONTAINER_NAME) $(IMAGE_NAME):latest api_service.py
 	@echo "Created a new docker image: $(IMAGE_NAME):$(NEW_VERSION)"
 	make tag NEW_VERSION=$(NEW_VERSION)
 

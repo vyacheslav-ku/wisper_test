@@ -42,8 +42,6 @@ model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device
 app = FastAPI()
 print("READY!!")
 
-
-
 def process_audio(file_name: str = None, min_speakers: int = 1, max_speakers: int = 1) -> dict:
     transcribasiotn_start_time = time.time()
     audio = whisperx.load_audio(file_name)
