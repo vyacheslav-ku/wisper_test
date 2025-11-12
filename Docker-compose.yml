@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  wisper-api:
+    image: genesys_exporter:1
+    container_name: genesys_exporter
+    restart: unless-stopped
+    volumes:
+      - ./genesys_recordings:/opt/spitch/app/genesys_recordings

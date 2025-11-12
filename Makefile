@@ -10,7 +10,7 @@ ENV_FILE ?= .env
 # Файл, где хранится текущая версия
 VERSION_FILE := .version
 VERSION := $(shell cat $(VERSION_FILE) 2>/dev/null || echo "0.0.0")
-
+.DEFAULT_GOAL := help
 
 define bump_version
 $(eval NEW_VERSION := $(shell echo $(VERSION) | awk -F. '{ $$3+=1; printf("%d.%d.%d", $$1,$$2,$$3) }'))
@@ -19,8 +19,9 @@ $(eval NEW_VERSION := $(shell echo $(VERSION) | awk -F. '{ $$3+=1; printf("%d.%d
 @echo $(NEW_VERSION) > $(VERSION_FILE)
 endef
 
-.PHONY: build run stop rm tag logs restart clean version
-run_bash:
+.PHONY: help build run stop rm tag logs restart clean version
+
+run_bash: ## Комагда запускает последний собранный контейнер в режиме консоли, подменяет entrypoint=bash, также добавляет все необзодимые переменные окружения. В команду можно добавить монтирование всех необходимые директорий и настроить проброс портов.
 	@echo "🚀 Run application $(CONTAINER_NAME)"
 	docker rm $(CONTAINER_NAME) || true
 	docker run -ti  --rm \
@@ -30,11 +31,11 @@ run_bash:
 		--env-file $(ENV_FILE) \
 		$(IMAGE_NAME):$(TAG)
 
-build_base:
+build_base: ## Собирает базовый Docker-образ из $(DOCKERFILE_BASE)
 	@echo "🔨 Building base docker image $(IMAGE_NAME):$(TAG)"
 	docker build -t $(CONTAINER_NAME_BASE) -f $(DOCKERFILE_BASE) $(APP_DIR)
 
-build:
+build: stop rm ## Собирает основной Docker-образ из $(DOCKERFILE). Возможно надо в начале собрать базовый образ команды build_base. После успешной сборки эта команды пытается запустить контейнер с переменной окружения TESTRUN=1, ожидается что сервис выполнит тестовый запуск и завершит работу самостоятельно.
 	$(call bump_version)
 	@echo "🔨 Building app docker image $(IMAGE_NAME):$(NEW_VERSION)"
 	docker build -t $(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
@@ -50,7 +51,7 @@ build:
 	@echo "Created a new docker image: $(IMAGE_NAME):$(NEW_VERSION)"
 	make tag NEW_VERSION=$(NEW_VERSION)
 
-run:
+run: stop rm ## Запускает контейнер из текущего образа с монтированием .env и пробросом порта
 	@echo "🚀 Run application $(CONTAINER_NAME) on port $(PORT) "
 	docker run --rm -ti \
 		--name $(CONTAINER_NAME) \
@@ -67,7 +68,7 @@ tag:
 	#@git push origin "v$(NEW_VERSION)"
 	@echo "Created git-tag: v$(NEW_VERSION)"
 
-version:
+version: ## Показывает последнюю собранную версию сервиса и контейнера. Версия сохраняется в файле .version
 	@echo "Current version: $(VERSION)"
 
 clean:
@@ -88,6 +89,12 @@ rm: stop
 	@echo "🧹 Remove container $(CONTAINER_NAME)"
 	docker rm $(CONTAINER_NAME) || true
 
-
+## build: Собирает основной Docker-образ из $(DOCKERFILE)
 restart: rm run
 	@echo "♻️ Container $(CONTAINER_NAME) has been restarted"
+
+
+## help: Показывает список всех доступных команд Makefile с описанием
+help:
+	@echo "Доступные команды:"
+	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z0-9_\-]+:.*##/ {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
