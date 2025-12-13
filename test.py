@@ -1,6 +1,7 @@
 import sys
 
 import time
+import pickle
 
 import whisperx
 import torch
@@ -36,6 +37,7 @@ model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device
                             compute_type=compute_type,
                             download_root=os.getenv("whisperx_download_root", "./models"))
 file_name = "./media_452785_msg_452785.oga"
+file_name = "./audio.wav"
 # class LocalDiarizationPipeline(DiarizationPipeline):
 #     """
 #     DiarizationPipeline с гарантированной загрузкой модели из локального диска
@@ -91,13 +93,18 @@ class LocalDiarizationPipeline(DiarizationPipeline):
 
 
 print("Loading diarize_model")
-diarize_model = LocalDiarizationPipeline(
-    model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
-    device=device,  # cuda или "cpu"
-    cache_dir=os.getenv("whisperx_download_root", "./models"),
-    offline=True,
-)
+# diarize_model = LocalDiarizationPipeline(
+#     model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
+#     device=device,  # cuda или "cpu"
+#     cache_dir=os.getenv("whisperx_download_root", "./models"),
+#     offline=True,
+# )
+#
+# with open('./models/diarize_model.pkl', 'wb') as file:
+#     pickle.dump(diarize_model, file)
 
+with open('./models/diarize_model.pkl', 'rb') as file:
+    diarize_model = pickle.load(file)
 
 transcribasiotn_start_time = time.time()
 try:
@@ -121,12 +128,12 @@ print(result["segments"])  # after alignment
 print(f" Took time: {time.time() - start_time} seconds")
 print(f" transcribastion Took time: {time.time() - transcribasiotn_start_time} seconds")
 # delete model if low on GPU resources
-import gc
-import torch
-gc.collect()
-torch.cuda.empty_cache()
-del model_a
-#
+# import gc
+# import torch
+# gc.collect()
+# torch.cuda.empty_cache()
+# del model_a
+# #
 # # 3. Assign speaker labels
 assign_word_speakers_start = time.time()
 
@@ -145,3 +152,7 @@ print(f"transcribasiotn_start_time time: {time.time() - transcribasiotn_start_ti
 print(f"Total time: {time.time() - start_time} seconds")
 print(f"assign_word_speakers_start time: {time.time() - assign_word_speakers_start} seconds")
 
+for s in result.get("segments"):
+    #print(s)
+
+    print(f"'{s.get('start')}-{s.get('end')}' : {s.get('speaker')} : {s.get('text')} ")
