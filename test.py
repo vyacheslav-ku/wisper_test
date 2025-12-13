@@ -138,7 +138,7 @@ print(f" transcribastion Took time: {time.time() - transcribasiotn_start_time} s
 assign_word_speakers_start = time.time()
 
 # add min/max number of speakers if known
-diarize_segments = diarize_model(audio, min_speakers=1,
+diarize_segments = diarize_model(audio, min_speakers=2,
                                  max_speakers=2)
 # diarize_model(audio, min_speakers=min_speakers, max_speakers=max_speakers)
 

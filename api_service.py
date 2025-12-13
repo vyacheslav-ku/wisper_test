@@ -1,3 +1,4 @@
+import pickle
 import sys
 
 from fastapi import FastAPI, UploadFile, File, Form
@@ -81,12 +82,14 @@ class LocalDiarizationPipeline(DiarizationPipeline):
             use_auth_token=use_auth_token,
         ).to(device)
 print("Loading diarize_model")
-diarize_model = LocalDiarizationPipeline(
-    model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
-    device=device,  # cuda или "cpu"
-    cache_dir=os.getenv("whisperx_download_root", "./models"),
-    offline=True,
-)
+# diarize_model = LocalDiarizationPipeline(
+#     model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
+#     device=device,  # cuda или "cpu"
+#     cache_dir=os.getenv("whisperx_download_root", "./models"),
+#     offline=True,
+# )
+with open('./models/diarize_model.pkl', 'rb') as file:
+    diarize_model = pickle.load(file)
 
 if str(os.getenv("TESTRUN", "2")) =="1":
     print(os.environ)
