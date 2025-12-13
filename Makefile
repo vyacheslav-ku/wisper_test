@@ -1,3 +1,4 @@
+PRETAG ?= danubise
 IMAGE_NAME ?= wisper
 TAG ?= latest
 CONTAINER_NAME ?= $(IMAGE_NAME)_container
@@ -38,8 +39,8 @@ build_base: ## Собирает базовый Docker-образ из $(DOCKERFI
 build: stop rm ## Собирает основной Docker-образ из $(DOCKERFILE). Возможно надо в начале собрать базовый образ команды build_base. После успешной сборки эта команды пытается запустить контейнер с переменной окружения TESTRUN=1, ожидается что сервис выполнит тестовый запуск и завершит работу самостоятельно.
 	$(call bump_version)
 	@echo "🔨 Building app docker image $(IMAGE_NAME):$(NEW_VERSION)"
-	docker build -t $(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
-	docker tag $(IMAGE_NAME):$(NEW_VERSION) $(IMAGE_NAME):latest
+	docker build -t $(PRETAG)/$(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
+	docker tag $(PRETAG)/$(IMAGE_NAME):$(NEW_VERSION)  $(PRETAG)/$(IMAGE_NAME):latest
 	docker kill $(CONTAINER_NAME) && docker rm $(CONTAINER_NAME) || echo "Container $(CONTAINER_NAME) is not running"
 
 	docker run --rm -ti -e TESTRUN=1 --env-file=./.env \
