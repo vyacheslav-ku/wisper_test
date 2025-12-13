@@ -46,20 +46,3 @@ RUN useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
     && mkdir -p ${POETRY_HOME}  \
     && chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
 WORKDIR ${APP_HOME}
-
-# Копируем только исходники приложения (не ломая кэш зависимостей)
-#COPY --chown=${APP_USER}:${APP_USER} ${PROJECT_NAME} ${APP_HOME}/${PROJECT_NAME}
-COPY --chown=${APP_USER}:${APP_USER} api_service.py ${APP_HOME}/
-
-RUN chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
-USER ${APP_USER}
-
-# Метаданные (полезно для CI/CD)
-LABEL maintainer=${maintainer} \
-      version=${APP_VERSION} \
-      description=${description}
-
-
-
-# Runing gen-cloud-audio-uploading script
-CMD ["uvicorn" ,"api_service:app" ,"--reload", "--host", "0.0.0.0","--port", "8000" ]
