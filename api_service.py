@@ -15,6 +15,8 @@ import whisperx
 # torch.backends.cudnn.allow_tf32 = False
 import torch
 
+
+
 print(f"torch.version.cuda={torch.version.cuda}")
 print(f"torch.backends.cudnn.version={torch.backends.cudnn.version()}")
 
@@ -49,46 +51,38 @@ model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device
                             compute_type=compute_type,
                             download_root=os.getenv("whisperx_download_root", "./models"))
 
-class LocalDiarizationPipeline(DiarizationPipeline):
-    """
-    DiarizationPipeline с гарантированной загрузкой модели из локального диска
-    (через HuggingFace cache).
-    """
 
+print("Loading diarize_model")
+class LocalDiarizationPipeline(DiarizationPipeline):
     def __init__(
         self,
-        model_name: str = "pyannote/speaker-diarization-3.1",
-        device: Optional[Union[str, torch.device]] = "cpu",
-        cache_dir: Optional[str] = None,
-        use_auth_token: Optional[str] = None,
-        offline: bool = True,
+            model_name = None,
+        device="cpu",
+        cache_dir="./models",
+            offline: bool = False,
     ):
-        if isinstance(device, str):
-            device = torch.device(device)
+        os.environ.setdefault("HF_HUB_OFFLINE", "1")
+        os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
-        # Жёстко включаем оффлайн-режим (по желанию)
-        if offline:
-            os.environ.setdefault("HF_HUB_OFFLINE", "1")
-            os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+        logger.info("Loading diarization pipeline (offline, local cache)")
 
-        print(
-            f"Loading diarization model (local): {model_name}, cache_dir={cache_dir}"
-        )
-
-        # ПЕРЕОПРЕДЕЛЯЕМ self.model вместо вызова super().__init__()
         self.model = Pipeline.from_pretrained(
-            model_name,
+            "pyannote/speaker-diarization-3.1",
             cache_dir=cache_dir,
-            use_auth_token=use_auth_token,
-        ).to(device)
-print("Loading diarize_model")
+            #use_auth_token=True,  # берёт HF_TOKEN
+        ).to(torch.device(device))
+
 # diarize_model = LocalDiarizationPipeline(
 #     model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
 #     device=device,  # cuda или "cpu"
 #     cache_dir=os.getenv("whisperx_download_root", "./models"),
 #     offline=True,
 # )
-with open('./models/diarize_model.pkl', 'rb') as file:
+#
+# with open('./models/diarize_model2.pkl', 'wb') as file:
+#     pickle.dump(diarize_model, file)
+
+with open('./models/diarize_model2.pkl', 'rb') as file:
     diarize_model = pickle.load(file)
 
 if str(os.getenv("TESTRUN", "2")) =="1":
