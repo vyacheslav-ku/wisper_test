@@ -4,7 +4,7 @@ from fastapi import FastAPI, UploadFile, File, Form
 from pydantic import BaseModel
 import hashlib
 import os
-from typing import Optional
+from typing import Optional, Union
 import time
 import os
 import json
@@ -20,6 +20,16 @@ print(f"torch.backends.cudnn.version={torch.backends.cudnn.version()}")
 import gc
 from whisperx.diarize import DiarizationPipeline
 import dotenv
+
+import os
+import torch
+from typing import Optional, Union
+from pyannote.audio import Pipeline
+from whisperx.diarize import DiarizationPipeline
+from whisperx.log_utils import get_logger
+
+logger = get_logger(__name__)
+
 
 dotenv.load_dotenv("~/.env")
 dotenv.load_dotenv(".env")
@@ -39,8 +49,50 @@ if str(os.getenv("TESTRUN", "2")) =="1":
 model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device,
                             compute_type=compute_type,
                             download_root=os.getenv("whisperx_download_root", "./models"))
+
+class LocalDiarizationPipeline(DiarizationPipeline):
+    """
+    DiarizationPipeline с гарантированной загрузкой модели из локального диска
+    (через HuggingFace cache).
+    """
+
+    def __init__(
+        self,
+        model_name: str = "pyannote/speaker-diarization-3.1",
+        device: Optional[Union[str, torch.device]] = "cpu",
+        cache_dir: Optional[str] = None,
+        use_auth_token: Optional[str] = None,
+        offline: bool = True,
+    ):
+        if isinstance(device, str):
+            device = torch.device(device)
+
+        # Жёстко включаем оффлайн-режим (по желанию)
+        if offline:
+            os.environ.setdefault("HF_HUB_OFFLINE", "1")
+            os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
+
+        logger.info(
+            f"Loading diarization model (local): {model_name}, cache_dir={cache_dir}"
+        )
+
+        # ПЕРЕОПРЕДЕЛЯЕМ self.model вместо вызова super().__init__()
+        self.model = Pipeline.from_pretrained(
+            model_name,
+            cache_dir=cache_dir,
+            use_auth_token=use_auth_token,
+        ).to(device)
+
+diarize_model = LocalDiarizationPipeline(
+    model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
+    device=device,  # cuda или "cpu"
+    cache_dir=os.getenv("whisperx_download_root", "./models"),
+    offline=True,
+)
 app = FastAPI()
 print("READY!!")
+
+
 
 def process_audio(file_name: str = None, min_speakers: int = 1, max_speakers: int = 1) -> dict:
     transcribasiotn_start_time = time.time()
@@ -68,9 +120,6 @@ def process_audio(file_name: str = None, min_speakers: int = 1, max_speakers: in
     #
     # # 3. Assign speaker labels
     assign_word_speakers_start = time.time()
-    diarize_model = DiarizationPipeline(os.getenv("diarization_model_name", 'pyannote/speaker-diarization-3.1'),
-                                        use_auth_token=os.getenv("use_auth_token"),
-                                        device=device)
 
     # add min/max number of speakers if known
     diarize_segments = diarize_model(audio, min_speakers=min_speakers,

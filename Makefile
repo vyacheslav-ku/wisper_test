@@ -20,7 +20,7 @@ $(eval NEW_VERSION := $(shell echo $(VERSION) | awk -F. '{ $$3+=1; printf("%d.%d
 @echo $(NEW_VERSION) > $(VERSION_FILE)
 endef
 
-.PHONY: help build run stop rm tag logs restart clean version
+.PHONY: help docker_build run docker_stop docker_rm tag docker_logs docker_restart clean version docker_push docker_run
 
 run_bash: ## Комагда запускает последний собранный контейнер в режиме консоли, подменяет entrypoint=bash, также добавляет все необзодимые переменные окружения. В команду можно добавить монтирование всех необходимые директорий и настроить проброс портов.
 	@echo "🚀 Run application $(CONTAINER_NAME)"
@@ -36,7 +36,7 @@ build_base: ## Собирает базовый Docker-образ из $(DOCKERFI
 	@echo "🔨 Building base docker image $(IMAGE_NAME):$(TAG)"
 	docker build -t $(CONTAINER_NAME_BASE) -f $(DOCKERFILE_BASE) $(APP_DIR)
 
-build: stop rm ## Собирает основной Docker-образ из $(DOCKERFILE). Возможно надо в начале собрать базовый образ команды build_base. После успешной сборки эта команды пытается запустить контейнер с переменной окружения TESTRUN=1, ожидается что сервис выполнит тестовый запуск и завершит работу самостоятельно.
+docker_build: docker_stop docker_rm ## Собирает основной Docker-образ из $(DOCKERFILE). Возможно надо в начале собрать базовый образ команды build_base. После успешной сборки эта команды пытается запустить контейнер с переменной окружения TESTRUN=1, ожидается что сервис выполнит тестовый запуск и завершит работу самостоятельно.
 	$(call bump_version)
 	@echo "🔨 Building app docker image $(IMAGE_NAME):$(NEW_VERSION)"
 	docker build -t $(DOCKER_REPO_NAME)/$(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
@@ -51,8 +51,10 @@ build: stop rm ## Собирает основной Docker-образ из $(DOC
 				--name $(CONTAINER_NAME) $(IMAGE_NAME):latest api_service.py
 	@echo "Created a new docker image: $(IMAGE_NAME):$(NEW_VERSION)"
 	make tag NEW_VERSION=$(NEW_VERSION)
+run:
+	uvicorn api_service:app --reload --host "0.0.0.0" --port 8000
 
-run: stop rm ## Запускает контейнер из текущего образа с монтированием .env и пробросом порта
+docker_run: docker_stop docker_rm ## Запускает контейнер из текущего образа с монтированием .env и пробросом порта
 	@echo "🚀 Run application $(CONTAINER_NAME) on port $(PORT) "
 	docker run --rm -ti \
 		--name $(CONTAINER_NAME) \
@@ -76,30 +78,30 @@ clean:
 	@echo "Remove image $(IMAGE_NAME):$(VERSION)"
 
 
-logs:
+docker_logs:
 	docker logs -f $(CONTAINER_NAME)
 
 
-stop:
+docker_stop:
 	@echo "🛑 Stop application $(CONTAINER_NAME)"
 	docker stop $(CONTAINER_NAME) || true
 
 
-rm: stop
+docker_rm: docker_stop
 	@echo "🧹 Remove container $(CONTAINER_NAME)"
 	docker rm $(CONTAINER_NAME) || true
 
-restart: rm run
+docker_restart: docker_rm docker_run
 	@echo "♻️ Container $(CONTAINER_NAME) has been restarted"
 
 save_image:
 	@echo "Saving last version ($(IMAGE_NAME):$(VERSION)) of the image"
 	docker save -o $(IMAGE_NAME)_$(VERSION).tgz $(IMAGE_NAME):$(VERSION)
 
-## help: Показывает список всех доступных команд Makefile с описанием
+
 help: ## Показывает список всех доступных команд Makefile с описанием
 	@echo "Доступные команды:"
 	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z0-9_\-]+:.*##/ {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
-docker_push: ##
-	docker push $(DOCKER_REPO_NAME)/$(IMAGE_NAME):$(NEW_VERSION)
+docker_push: ## выгружает последнюю версию в docker registry
+	docker push $(DOCKER_REPO_NAME)/$(IMAGE_NAME):$(VERSION)
