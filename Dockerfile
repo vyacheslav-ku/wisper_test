@@ -36,9 +36,12 @@ ENV APP_HOME=${APP_HOME} \
     APP_VERSION=${APP_VERSION}
 
 # Копируем виртуальное окружение и зависимости
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        ffmpeg \
-    && rm -rf /var/lib/apt/lists/*
+RUN --mount=type=cache,target=/var/cache/apt \
+    --mount=type=cache,target=/var/lib/apt \
+    apt-get update && \
+    apt-get install -y --no-install-recommends \
+        ffmpeg && \
+    rm -rf /var/lib/apt/lists/*
 RUN useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
     && mkdir -p ${POETRY_HOME}  \
     && chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
