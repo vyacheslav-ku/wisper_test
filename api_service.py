@@ -43,6 +43,7 @@ UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 # 1. Transcribe with original whisper (batched)
+logger.info("Loading model")
 model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device,
                             compute_type=compute_type,
                             download_root=os.getenv("whisperx_download_root", "./models"))
@@ -69,7 +70,7 @@ class LocalDiarizationPipeline(DiarizationPipeline):
             os.environ.setdefault("HF_HUB_OFFLINE", "1")
             os.environ.setdefault("TRANSFORMERS_OFFLINE", "1")
 
-        logger.info(
+        print(
             f"Loading diarization model (local): {model_name}, cache_dir={cache_dir}"
         )
 
@@ -79,7 +80,7 @@ class LocalDiarizationPipeline(DiarizationPipeline):
             cache_dir=cache_dir,
             use_auth_token=use_auth_token,
         ).to(device)
-
+print("Loading diarize_model")
 diarize_model = LocalDiarizationPipeline(
     model_name= os.getenv("diarize_model_name","pyannote/speaker-diarization-3.1"),
     device=device,  # cuda или "cpu"
@@ -163,6 +164,7 @@ async def upload_file(
     file_path = os.path.join(UPLOAD_DIR, file.filename)
 
     # Сохраняем файл
+    print("file_path", file_path)
     with open(file_path, "wb") as f:
         content = await file.read()
         f.write(content)

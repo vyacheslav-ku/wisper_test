@@ -9,6 +9,16 @@ services:
       - 8000:8000
     env_file:
       - .env
+    environment:
+      - HF_HOME=/opt/wisper/models
+      - HUGGINGFACE_HUB_CACHE=/opt/wisper/models
+      - TRANSFORMERS_CACHE=/opt/wisper/models
+      - HF_HUB_OFFLINE=0
+      - TRANSFORMERS_OFFLINE=1
     volumes:
       - ./models:/opt/wisper/models
       - ./uploads:/opt/wisper/uploads
+      - ./api_service.py:/opt/wisper/api_service.py
+      - ./test.py:/opt/wisper/test.py
+      - ./media_452785_msg_452785.oga:/opt/wisper/media_452785_msg_452785.oga
+      - ./audio.wav:/opt/wisper/audio.wav
