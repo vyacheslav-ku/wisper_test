@@ -1,4 +1,4 @@
-PRETAG ?= danubise
+DOCKER_REPO_NAME ?= danubise
 IMAGE_NAME ?= wisper
 TAG ?= latest
 CONTAINER_NAME ?= $(IMAGE_NAME)_container
@@ -39,8 +39,8 @@ build_base: ## Собирает базовый Docker-образ из $(DOCKERFI
 build: stop rm ## Собирает основной Docker-образ из $(DOCKERFILE). Возможно надо в начале собрать базовый образ команды build_base. После успешной сборки эта команды пытается запустить контейнер с переменной окружения TESTRUN=1, ожидается что сервис выполнит тестовый запуск и завершит работу самостоятельно.
 	$(call bump_version)
 	@echo "🔨 Building app docker image $(IMAGE_NAME):$(NEW_VERSION)"
-	docker build -t $(PRETAG)/$(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
-	docker tag $(PRETAG)/$(IMAGE_NAME):$(NEW_VERSION)  $(PRETAG)/$(IMAGE_NAME):latest
+	docker build -t $(DOCKER_REPO_NAME)/$(IMAGE_NAME):$(NEW_VERSION) --build-arg APP_VERSION=$(NEW_VERSION) -f $(DOCKERFILE) $(APP_DIR)
+	docker tag $(DOCKER_REPO_NAME)/$(IMAGE_NAME):$(NEW_VERSION)  $(DOCKER_REPO_NAME)/$(IMAGE_NAME):latest
 	docker kill $(CONTAINER_NAME) && docker rm $(CONTAINER_NAME) || echo "Container $(CONTAINER_NAME) is not running"
 
 	docker run --rm -ti -e TESTRUN=1 --env-file=./.env \
@@ -62,7 +62,6 @@ run: stop rm ## Запускает контейнер из текущего об
 		$(IMAGE_NAME):$(TAG)
 
 tag:
-#	@$(call bump_version)
 	@git add .
 	@git commit -m "Release v$(NEW_VERSION)"
 	@git tag -a "v$(NEW_VERSION)" -m "Release v$(NEW_VERSION)"
@@ -90,12 +89,17 @@ rm: stop
 	@echo "🧹 Remove container $(CONTAINER_NAME)"
 	docker rm $(CONTAINER_NAME) || true
 
-## build: Собирает основной Docker-образ из $(DOCKERFILE)
 restart: rm run
 	@echo "♻️ Container $(CONTAINER_NAME) has been restarted"
 
+save_image:
+	@echo "Saving last version ($(IMAGE_NAME):$(VERSION)) of the image"
+	docker save -o $(IMAGE_NAME)_$(VERSION).tgz $(IMAGE_NAME):$(VERSION)
 
 ## help: Показывает список всех доступных команд Makefile с описанием
-help:
+help: ## Показывает список всех доступных команд Makefile с описанием
 	@echo "Доступные команды:"
 	@awk 'BEGIN {FS = ":.*##"; printf "\n"} /^[a-zA-Z0-9_\-]+:.*##/ {printf "  \033[36m%-18s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+
+docker_push: ##
+	docker push $(DOCKER_REPO_NAME)/$(IMAGE_NAME):$(NEW_VERSION)
