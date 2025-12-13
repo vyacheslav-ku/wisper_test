@@ -90,20 +90,20 @@ diarize_model = LocalDiarizationPipeline(
     offline=True,
 )
 app = FastAPI()
-print("READY!!")
+logger.info("READY!!")
 
 
 
 def process_audio(file_name: str = None, min_speakers: int = 1, max_speakers: int = 1) -> dict:
     transcribasiotn_start_time = time.time()
     try:
-        print(f"Loading audio '{file_name}'")
+        logger.info(f"Loading audio '{file_name}'")
         audio = whisperx.load_audio(file_name)
         result = model.transcribe(audio, batch_size=batch_size)
     except Exception as e:
         print(e)
         raise e
-    print(result["segments"])  # before alignment
+    logger.info(result["segments"])  # before alignment
 
     # delete model if low on GPU resources
     # import gc; import torch; gc.collect(); torch.cuda.empty_cache(); del model
