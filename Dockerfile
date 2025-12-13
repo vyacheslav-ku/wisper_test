@@ -40,14 +40,13 @@ RUN --mount=type=cache,target=/var/cache/apt \
     --mount=type=cache,target=/var/lib/apt \
     apt-get update && \
     apt-get install -y --no-install-recommends \
-        ffmpeg && \
-    rm -rf /var/lib/apt/lists/*
+        ffmpeg
 RUN useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
     && mkdir -p ${POETRY_HOME}  \
     && chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
 WORKDIR ${APP_HOME}
 
-FROM runtime AS runtime2
+FROM runtime AS final_runtime
 
 COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} ${APP_HOME} ${APP_HOME}
 # Копируем только исходники приложения (не ломая кэш зависимостей)
