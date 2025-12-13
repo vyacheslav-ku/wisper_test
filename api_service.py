@@ -41,10 +41,7 @@ compute_type = os.getenv("compute_type",
                          "float16")  # "int8" # "float16" # change to "int8" if low on GPU mem (may reduce accuracy)
 UPLOAD_DIR = os.getenv("UPLOAD_DIR", "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
-if str(os.getenv("TESTRUN", "2")) =="1":
-    print(os.environ)
-    print("TEST RUN DONE.")
-    sys.exit(0)
+
 # 1. Transcribe with original whisper (batched)
 model = whisperx.load_model(os.getenv("whisperx_model_name", "large-v2"), device,
                             compute_type=compute_type,
@@ -89,6 +86,11 @@ diarize_model = LocalDiarizationPipeline(
     cache_dir=os.getenv("whisperx_download_root", "./models"),
     offline=True,
 )
+
+if str(os.getenv("TESTRUN", "2")) =="1":
+    print(os.environ)
+    print("TEST RUN DONE.")
+    sys.exit(0)
 app = FastAPI()
 logger.info("READY!!")
 
