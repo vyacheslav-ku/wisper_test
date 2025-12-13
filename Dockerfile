@@ -44,6 +44,8 @@ RUN useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
     && chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
 WORKDIR ${APP_HOME}
 
+FROM runtime AS runtime2
+
 COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} ${APP_HOME} ${APP_HOME}
 # Копируем только исходники приложения (не ломая кэш зависимостей)
 #COPY --chown=${APP_USER}:${APP_USER} ${PROJECT_NAME} ${APP_HOME}/${PROJECT_NAME}
