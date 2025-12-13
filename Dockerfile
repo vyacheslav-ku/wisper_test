@@ -36,10 +36,6 @@ ENV APP_HOME=${APP_HOME} \
     APP_VERSION=${APP_VERSION}
 
 # Копируем виртуальное окружение и зависимости
-COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} ${APP_HOME} ${APP_HOME}
-# Копируем только исходники приложения (не ломая кэш зависимостей)
-#COPY --chown=${APP_USER}:${APP_USER} ${PROJECT_NAME} ${APP_HOME}/${PROJECT_NAME}
-COPY --chown=${APP_USER}:${APP_USER} api_service.py ${APP_HOME}/
 RUN apt-get update && apt-get install -y --no-install-recommends \
         ffmpeg \
     && rm -rf /var/lib/apt/lists/*
@@ -47,6 +43,13 @@ RUN useradd -u ${APP_UID} -m -s /usr/sbin/nologin ${APP_USER}  \
     && mkdir -p ${POETRY_HOME}  \
     && chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
 WORKDIR ${APP_HOME}
+
+COPY --from=wisper:base --chown=${APP_USER}:${APP_USER} ${APP_HOME} ${APP_HOME}
+# Копируем только исходники приложения (не ломая кэш зависимостей)
+#COPY --chown=${APP_USER}:${APP_USER} ${PROJECT_NAME} ${APP_HOME}/${PROJECT_NAME}
+COPY --chown=${APP_USER}:${APP_USER} api_service.py ${APP_HOME}/
+
+RUN chown ${APP_USER}:${APP_USER} ${POETRY_HOME} -R
 USER ${APP_USER}
 
 # Метаданные (полезно для CI/CD)

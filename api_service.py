@@ -96,8 +96,13 @@ print("READY!!")
 
 def process_audio(file_name: str = None, min_speakers: int = 1, max_speakers: int = 1) -> dict:
     transcribasiotn_start_time = time.time()
-    audio = whisperx.load_audio(file_name)
-    result = model.transcribe(audio, batch_size=batch_size)
+    try:
+        print(f"Loading audio '{file_name}'")
+        audio = whisperx.load_audio(file_name)
+        result = model.transcribe(audio, batch_size=batch_size)
+    except Exception as e:
+        print(e)
+        raise e
     print(result["segments"])  # before alignment
 
     # delete model if low on GPU resources
